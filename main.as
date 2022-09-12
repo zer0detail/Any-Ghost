@@ -1,17 +1,13 @@
-
 bool searchTMIO = false;
 string TMIOSearchString = "";
 array<Player@> PlayerList;
 
-// auto app = cast<CTrackMania>(GetApp());
-// auto network = cast<CTrackManiaNetwork>(app.Network);
-
-void Main() {
-    
+void Main() {  
     if (canRaceGhostsCheck()){
         print("User can race record ghosts.");
     } else {
         warn("You are unable to race against record ghosts, this plugin will not work.");
+        return;
     }
     while(true) {
         // Clear Active ghosts radio buttons when you're not in a map.
@@ -23,16 +19,6 @@ void Main() {
         yield();
     }
     
-}
-
-
-
-void OnSettingsChanged() {
-    if (canRaceGhostsCheck()){
-        print("User can race record ghosts.");
-    } else {
-        warn("You are unable to race against record ghosts, this plugin will not work.");
-    }    
 }
 
 bool canRaceGhostsCheck() {

@@ -1,4 +1,9 @@
 void Render() {
+
+    if (!canRaceGhostsCheck()) {
+        return;
+    }
+
     int windowFlags = UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoDocking;
     if (!UI::IsOverlayShown()) {
         windowFlags |= UI::WindowFlags::NoInputs;
@@ -66,7 +71,6 @@ void Render() {
         UI::EndGroup();
         UI::End();
     }
-
 }
 
 
