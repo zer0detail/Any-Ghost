@@ -9,6 +9,31 @@ This plugin solves that problem, so you can now quickly enable ghosts for your f
 
 Feel free to open an issue or submit a pull request if you have one.
 
+# Usage
+
+When installed and enabled, this plugin will automatically open a searchbox UI when you enter a map.
+![](images/any_ghost_initial_window.png)
+
+Simply enter a player name, or part of a player name to search for and hit enter. (e.g. to search for wirtual you can just type wirt).
+
+![](images/any_ghost_search.png)
+
+A list of player names who match your search will be returned from Trackmania.io.
+Go ahead and click "Pin" to permanently pin that player to your ghosts list.
+After that you can click "Clear unpinned results" to remove other irrelevant entries.
+
+![](images/any_ghost_search_results.png)
+
+You can do this over and over to build a list of ghosts you wish to race against.
+
+![](images/any_ghost_pinned_players.png)
+
+Once you have your list, toggle the ghost on and off by clicking the Add ghost radio button.
+
+![](images/ghosts.png)
+
+Good Luck beating those ghosts!
+
 # Version Log
 
 ## Version 1.0
