@@ -1,7 +1,9 @@
-Players@ g_players = Players();
+Players@ g_players = Players(); // I made it global. Sue me.
 
 void RenderInterface() {
 
+    // Simple check to stop running if the user doesnt have the right permissions to be able to
+    // race against ghosts. (i.e they have purchased Club)
     if (!canRaceGhostsCheck()){
         return;
     }
@@ -14,8 +16,14 @@ void RenderInterface() {
         UI::Begin("Player Search", windowFlags);
         UI::BeginGroup();
         UI::Text("Any Ghost");
+        // If a player enters a string in the search bar, this is the first thing that will change.
+        // The g_players.searchTMIO flag will be set to true and the g_players.TMIOSearchString will be filled
+        // with the search string the user typed out.
+        // This cause the check in Render() to pass and kick off a Trackmania.io search
         g_players.TMIOSearchString = UI::InputText("Search", "", g_players.searchTMIO, UI::InputTextFlags::EnterReturnsTrue);
        
+        // Only show the "Clear Unpinned results" button if theres atleast one player who is unpinned in the list.
+        // Otherwise it doesn't really make sense to exist, and removing it keeps the overlay smaller
         for (uint i =0; i < g_players.PlayerList.Length; i++){
             if (!g_players.PlayerList[i].Pinned) {
                 if(UI::Button("Clear Unpinned Results")) {
@@ -30,13 +38,16 @@ void RenderInterface() {
             for (uint i =0; i < g_players.PlayerList.Length; i++) {
                 UI::TableNextRow();
                 UI::TableNextColumn();
-        
+                // Load the snapchat ghost icon is the players ghost is enabled.
+                // This gives a nice visual cue other than the checked radio box
+                // that this ghost is on.
                 if (g_players.PlayerList[i].ghost.enabled) {
                     UI::Text(Icons::SnapchatGhost + " " + g_players.PlayerList[i].Username);
                 } else {
                     UI::Text(g_players.PlayerList[i].Username);
                 }
                 UI::TableNextColumn();
+                // Flip the pin/unpin button as the user pins/unpins the player
                 UI::PushID(g_players.PlayerList[i].WsId);
                 if (!g_players.PlayerList[i].Pinned) {
                     if (UI::Button("Pin")) {
@@ -50,6 +61,7 @@ void RenderInterface() {
                     }
                 }
                 UI::TableNextColumn();
+                // Trigger the Ghosts on/off based on the users input into the checkbox
                 if (g_players.PlayerList[i].ghost != null) {
                     bool checked = UI::Checkbox("Add Ghost", g_players.PlayerList[i].ghost.enabled);
                     if(checked != g_players.PlayerList[i].ghost.enabled) {
@@ -85,6 +97,9 @@ void Render() {
         g_players.searchTMIO = false;
     } 
     
+    // If we aren't in a map we need to clear the enabled status of all the ghosts.
+    // This stops us from loading into a new map and seeing that the ghosts checkbox is still enabled,
+    // but the ghost is off.
     if (!inMap()) {
         if (g_players.PlayerList.Length > 0){
             for (uint i = 0; i < g_players.PlayerList.Length; ++i){
@@ -97,6 +112,8 @@ void Render() {
 
 void clearUnpinnedResults() {
     // Clear out all old search results, except for pinned players
+    // Once this occurs, the UI stuff in RenderInterface will remove them
+    // from the users sight.
     for (uint i = 0; i < g_players.PlayerList.Length; i++) {
         if (!g_players.PlayerList[i].Pinned) {
             g_players.PlayerList.RemoveAt(i);
