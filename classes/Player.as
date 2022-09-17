@@ -2,14 +2,14 @@
 // display those results to the user (hence username) and later activate that users ghost (hence wsid) 
 class Player {
     string Username;
-    string WsId;
     bool Pinned;
-    bool ghostOn;
+    string WsId;
+    Ghost@ ghost;
 
-    Player(const string &in username, const string &in wsid) {
+    Player(const string &in username, const string &in wsid, Ghost@ t_ghost) {
         Username = username;
         WsId = wsid;
         Pinned = false;
-        ghostOn = false;
+        @ghost = t_ghost;
     }
 }
