@@ -51,12 +51,12 @@ void RenderInterface() {
                 UI::PushID(g_players.PlayerList[i].WsId);
                 if (!g_players.PlayerList[i].Pinned) {
                     if (UI::Button("Pin")) {
-                        print("Pinned: " + g_players.PlayerList[i].Username);
+                        // print("Pinned: " + g_players.PlayerList[i].Username);
                         g_players.PlayerList[i].Pinned = true;
                     }
                 } else {
                     if (UI::Button("Unpin")) {
-                        print("Unpinned: " + g_players.PlayerList[i].Username);
+                        // print("Unpinned: " + g_players.PlayerList[i].Username);
                         g_players.PlayerList[i].Pinned = false;
                     }
                 }
@@ -90,7 +90,7 @@ void Render() {
     if (g_players.searchTMIO){
         // The user started a new search, so clear old unpinned results
         // since they probably didnt want them.
-        print(g_players.TMIOSearchString);
+        // print(g_players.TMIOSearchString);
         clearUnpinnedResults();
         startnew(GetPlayerListFromTMIO);
         // Set back to false so we only search once.
@@ -119,7 +119,7 @@ void clearUnpinnedResults() {
             g_players.PlayerList.RemoveAt(i);
             i--;
         } else {
-            print("Leaving Pinned Player: " + g_players.PlayerList[i].Username);
+            // print("Leaving Pinned Player: " + g_players.PlayerList[i].Username);
         }
     }
 }

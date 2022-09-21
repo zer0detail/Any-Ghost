@@ -9,7 +9,7 @@ class Ghost {
     string attachId; // The attachId is essentially just a unique identifier we tag this players UI layer with. Enabling us to find it in the future.
 
     Ghost(const string &in wsid, bool t_enabled) {
-        print("Initializing Ghost for player: "+ wsid);
+        // print("Initializing Ghost for player: "+ wsid);
         enabled = t_enabled;
         WsId = wsid;
         attachId = "Force-Ghost-Attach-ID-" + wsid;    
@@ -28,7 +28,7 @@ class Ghost {
         {
             if (playground.UILayers[i].AttachId == attachId)
             {
-                print("Ghost layer already exists, re-enabling Ghost.");
+                // print("Ghost layer already exists, re-enabling Ghost.");
                 playground.UILayers[i].ManialinkPage = "";
                 playground.UILayers[i].ManialinkPage = CreateManialink();
                 return;
@@ -38,7 +38,7 @@ class Ghost {
         auto layer = playground.UILayerCreate();
         layer.AttachId = attachId;
         layer.ManialinkPage = CreateManialink();
-        print("added layer: "+layer.AttachId);
+        // print("added layer: "+layer.AttachId);
     }
     
     // Disable the players ghost
@@ -52,7 +52,7 @@ class Ghost {
             if (layer.AttachId == attachId){
                 layer.ManialinkPage = "";
                 layer.ManialinkPage = CreateManialink();
-                print("Ghost Disabled");
+                // print("Ghost Disabled");
             }
         }    
     }
