@@ -57,8 +57,9 @@ void GetPlayerListFromTMIO() {
         // SearchResults[i]['player']['id'] extracts the users WsId, which is needed to enable ghosts later.
         for(uint i = 0; i < SearchResults.Length; i++) {
             string wsid =  SearchResults[i]["player"]["id"];
-            Ghost@ ghost = Ghost(wsid, false);
-            g_players.PlayerList.InsertLast(Player(SearchResults[i]["player"]["name"], wsid, ghost));
+            string name = SearchResults[i]["player"]["name"];
+            Ghost@ ghost = Ghost(wsid, false, name);
+            g_players.PlayerList.InsertLast(Player(name, wsid, ghost));
         }
         print("Parsed "+SearchResults.Length+" results and added them the Player List.");
         

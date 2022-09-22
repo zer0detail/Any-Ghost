@@ -5,14 +5,18 @@
 // Implementing a check to see if the ghost is on and changing the state to on could be a good 1.1 change.
 class Ghost {
     bool enabled; // Is the ghost enabled or disabled
+    bool checkbox_clicked;
     string WsId; // The players unique trackmania ID, used for toggling the ghost on/off
     string attachId; // The attachId is essentially just a unique identifier we tag this players UI layer with. Enabling us to find it in the future.
+    string Username; // Username for the ghost, used for checking if ghosts already exist
 
-    Ghost(const string &in wsid, bool t_enabled) {
+    Ghost(const string &in wsid, bool t_enabled, string username) {
         // print("Initializing Ghost for player: "+ wsid);
         enabled = t_enabled;
         WsId = wsid;
-        attachId = "Force-Ghost-Attach-ID-" + wsid;    
+        attachId = "Force-Ghost-Attach-ID-" + wsid;  
+        Username = username;  
+        checkbox_clicked = false;
     }
 
     // Enable the players ghost
@@ -22,17 +26,24 @@ class Ghost {
     // https://discord.com/channels/276076890714800129/276076890714800129/833427658523148319
     void Enable() {
         CGameManiaAppPlayground@ playground = GetApp().Network.ClientManiaAppPlayground;
+        
+        for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i) {
+            if (playground.DataFileMgr.Ghosts[i].Nickname == Username) {
+                // print("Ghost already enabled");
+                return;
+            }
+        }
         // Check through the current UI Layers and see if our players ID already exists.
         // If it does, don't bother creating a new UI Layer, just retoggle the ghost on.
         for (uint i = 0; i < playground.UILayers.Length; ++i)
         {
-            if (playground.UILayers[i].AttachId == attachId)
-            {
-                // print("Ghost layer already exists, re-enabling Ghost.");
-                playground.UILayers[i].ManialinkPage = "";
-                playground.UILayers[i].ManialinkPage = CreateManialink();
-                return;
+            if (playground.UILayers[i].AttachId == attachId) {
+                    // print("Ghost layer already exists, re-enabling Ghost.");
+                    playground.UILayers[i].ManialinkPage = "";
+                    playground.UILayers[i].ManialinkPage = CreateManialink();
+                    return;
             }
+
         }
         // If a current UI layer for this player doesnt exist we make a new one and toggle the ghost on
         auto layer = playground.UILayerCreate();
@@ -47,14 +58,32 @@ class Ghost {
     // toggle event to fire again, disabling the ghost.
     void Disable() {
         CGameManiaAppPlayground@ playground = GetApp().Network.ClientManiaAppPlayground;
-        for (uint i = 0; i < playground.UILayers.Length; ++i) {
-            auto layer = cast<CGameUILayer>(playground.UILayers[i]);
-            if (layer.AttachId == attachId){
-                layer.ManialinkPage = "";
-                layer.ManialinkPage = CreateManialink();
-                // print("Ghost Disabled");
+        bool already_disabled = true;
+        for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i) {
+            if (playground.DataFileMgr.Ghosts[i].Nickname == Username) {
+                already_disabled = false;
             }
-        }    
+        }
+        if (already_disabled) {
+            return;
+        }
+        // Check through the current UI Layers and see if our players ID already exists.
+        // If it does, don't bother creating a new UI Layer, just retoggle the ghost on.
+        for (uint i = 0; i < playground.UILayers.Length; ++i)
+        {
+            if (playground.UILayers[i].AttachId == attachId) {
+                    // print("Ghost layer already exists, disabling Ghost.");
+                    playground.UILayers[i].ManialinkPage = "";
+                    playground.UILayers[i].ManialinkPage = CreateManialink();
+                    return;
+            }
+
+        }
+        // If a current UI layer for this player doesnt exist we make a new one and toggle the ghost on
+        auto layer = playground.UILayerCreate();
+        layer.AttachId = attachId;
+        layer.ManialinkPage = CreateManialink();
+        // print("added layer: "+layer.AttachId); 
     }
     
     string CreateManialink()

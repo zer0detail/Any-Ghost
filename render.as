@@ -63,17 +63,15 @@ void RenderInterface() {
                 UI::TableNextColumn();
                 // Trigger the Ghosts on/off based on the users input into the checkbox
                 if (g_players.PlayerList[i].ghost != null) {
-                    bool checked = UI::Checkbox("Add Ghost", g_players.PlayerList[i].ghost.enabled);
-                    if(checked != g_players.PlayerList[i].ghost.enabled) {
-                        g_players.PlayerList[i].ghost.enabled = !g_players.PlayerList[i].ghost.enabled;       
-                        if (g_players.PlayerList[i].ghost.enabled){
-                            print("Adding ghost for player "+ g_players.PlayerList[i].Username);
-                            g_players.PlayerList[i].ghost.Enable();
-                        } else {
-                            print("Turning off ghost for "+ g_players.PlayerList[i].Username);
-                            g_players.PlayerList[i].ghost.Disable();
-                        }                 
-                    }
+                    // Pass in the current active state of the ghost so we can have the checkbox display activated
+                    // even if the ghost is activated somewhere else.
+                    // Save the result of any user clicks to a totally different variable "checkbox_clicked".
+                    // checkbox_clicked may be true or false, depending on if the user clicks the checkbox when the ghost is toggled on or off.
+                    // so a check like if(checkbox_clicked) wont work, buuuut we can check if checkbox_clicked is DIFFERENT to ghost.enabled.
+                    // Which will only occur if the checkbox is clicked.
+                    // This lets us decouple the actions of clicking the checkbox, from the visualization of the checkbox being enabled disabled.
+                    // Which is very important to let us sync with the official leaderboards ghosts being enabled/disabled
+                    g_players.PlayerList[i].ghost.checkbox_clicked = UI::Checkbox("Add Ghost", g_players.PlayerList[i].ghost.enabled);
                 }     
                 UI::PopID();
             }
@@ -103,6 +101,41 @@ void Render() {
     if (!inMap()) {
         if (g_players.PlayerList.Length > 0){
             for (uint i = 0; i < g_players.PlayerList.Length; ++i){
+                g_players.PlayerList[i].ghost.enabled = false;
+            }
+        }
+    } else {
+        CGameManiaAppPlayground@ playground = GetApp().Network.ClientManiaAppPlayground;
+        // ghosts are added when you click enable/disable in the DataFileMgr. Which also
+        // sits under ClientManiaAppPlayground.
+        // So playground.DataFileMgr.Ghosts will retrieve an array of CGameGhostScript@'s
+        // Each of which will contain an active ghost.
+        // so we could check if wirtuals ghost is enabled by something like
+        // for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i)
+        //    if playground.DataFileMgr.Ghosts[i].Nickname == <our ghost object>.Nickname 
+        //      wirtual is enabled
+        for (uint i = 0; i < g_players.PlayerList.Length; ++i){
+            // If the players "Add Ghost" checkbox has been clicked, do the ghost enabling/disabling
+            if(g_players.PlayerList[i].ghost.checkbox_clicked != g_players.PlayerList[i].ghost.enabled) {     
+                if (!g_players.PlayerList[i].ghost.enabled){
+                    print("Adding ghost for player "+ g_players.PlayerList[i].Username);
+                    g_players.PlayerList[i].ghost.Enable();
+                } else {
+                    print("Turning off ghost for "+ g_players.PlayerList[i].Username);
+                    g_players.PlayerList[i].ghost.Disable();
+                }                 
+            }
+            // Regardless of whether the checkbox was clicked, see if there has been a change to the ghost, so we can update its enabled state.
+            // e.g if someone clicked the inbuilt leaderboard and changed the ghost state outside of our plugin
+            bool ghost_exists = false;
+            for (uint j = 0; j < playground.DataFileMgr.Ghosts.Length; ++j) {
+                if (playground.DataFileMgr.Ghosts[j].Nickname == g_players.PlayerList[i].Username) {
+                    ghost_exists = true;
+                }
+            }
+            if (ghost_exists) {
+                g_players.PlayerList[i].ghost.enabled = true;
+            } else {
                 g_players.PlayerList[i].ghost.enabled = false;
             }
         }
