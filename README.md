@@ -41,3 +41,8 @@ Initial Plugin creation
 - You can search for any trackmania.io user to add a ghost for
 - Found players can be pinned so they dont disappear during future searches
 - Click the "add ghost" radio button to toggle that players ghost on/off
+
+
+## Version 1.1
+- Updated logic for ghost enabled/disabled status. Ghosts are now synchronized with Nadeo leaderboard widget to enable/disable ghosts.
+- Removed excess print statement to declutter openplanet log.
