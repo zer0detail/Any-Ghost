@@ -6,15 +6,19 @@
 class Ghost {
     bool enabled; // Is the ghost enabled or disabled
     bool checkbox_clicked;
+    bool enabling; // The ghost is in the process of turning on. This lets us provide a little loading UI feedback to the user
     string WsId; // The players unique trackmania ID, used for toggling the ghost on/off
     string attachId; // The attachId is essentially just a unique identifier we tag this players UI layer with. Enabling us to find it in the future.
     string Username; // Username for the ghost, used for checking if ghosts already exist
+    MwId MwId;
+    string rank;
+    
+
 
     Ghost(const string &in wsid, bool t_enabled, string username) {
         // print("Initializing Ghost for player: "+ wsid);
         enabled = t_enabled;
         WsId = wsid;
-        attachId = "Force-Ghost-Attach-ID-" + wsid;  
         Username = username;  
         checkbox_clicked = false;
     }
@@ -29,27 +33,13 @@ class Ghost {
         
         for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i) {
             if (playground.DataFileMgr.Ghosts[i].Nickname == Username) {
-                // print("Ghost already enabled");
+                print("Ghost already enabled");
                 return;
             }
         }
-        // Check through the current UI Layers and see if our players ID already exists.
-        // If it does, don't bother creating a new UI Layer, just retoggle the ghost on.
-        for (uint i = 0; i < playground.UILayers.Length; ++i)
-        {
-            if (playground.UILayers[i].AttachId == attachId) {
-                    // print("Ghost layer already exists, re-enabling Ghost.");
-                    playground.UILayers[i].ManialinkPage = "";
-                    playground.UILayers[i].ManialinkPage = CreateManialink();
-                    return;
-            }
-
-        }
-        // If a current UI layer for this player doesnt exist we make a new one and toggle the ghost on
-        auto layer = playground.UILayerCreate();
-        layer.AttachId = attachId;
-        layer.ManialinkPage = CreateManialink();
-        // print("added layer: "+layer.AttachId);
+        print("Sending ToggleGhost MLHook for " + WsId);
+        MLHook::Queue_SH_SendCustomEvent( "TMxSM_Race_Record_ToggleGhost", {WsId});
+        
     }
     
     // Disable the players ghost
@@ -67,33 +57,31 @@ class Ghost {
         if (already_disabled) {
             return;
         }
-        // Check through the current UI Layers and see if our players ID already exists.
-        // If it does, don't bother creating a new UI Layer, just retoggle the ghost on.
-        for (uint i = 0; i < playground.UILayers.Length; ++i)
-        {
-            if (playground.UILayers[i].AttachId == attachId) {
-                    // print("Ghost layer already exists, disabling Ghost.");
-                    playground.UILayers[i].ManialinkPage = "";
-                    playground.UILayers[i].ManialinkPage = CreateManialink();
-                    return;
-            }
-
-        }
-        // If a current UI layer for this player doesnt exist we make a new one and toggle the ghost on
-        auto layer = playground.UILayerCreate();
-        layer.AttachId = attachId;
-        layer.ManialinkPage = CreateManialink();
-        // print("added layer: "+layer.AttachId); 
+        MLHook::Queue_SH_SendCustomEvent( "TMxSM_Race_Record_ToggleGhost", {WsId});
     }
-    
-    string CreateManialink()
-    {
-        string ghostToggleEvent = "TMxSM_Race_Record_ToggleGhost";
-        return "<script><!--"
-            + "main()"
-            + "{"
-            + "    SendCustomEvent(\"" + ghostToggleEvent + "\", [\"" + WsId + "\"]);"
-            + "}"
-            + "--></script>";
-    }    
+
+    void Spectate() {
+        MLHook::Queue_SH_SendCustomEvent("TMxSM_Race_Record_SpectateGhost", {WsId});
+    }  
+
+    // We get the ranking on a per-ghost basis.
+    // I considered just batch getting all rankings for each search that's conducted so players didn't need to 
+    // activate ghosts to get a ranking displayed. But the player score isn't available until a ghost is turned on and the ghost object appears in DataFileMgr.
+    // So we have to retrieve ranks one by one. To make sure we dont spam Nadeo, the ranking will only be retrieved if a ghost is enabled, and then only the first time it's enabled.
+    void getRank() {
+        string MapUid = GetApp().RootMap.MapInfo.MapUid;
+        CGameManiaAppPlayground@ playground = GetApp().Network.ClientManiaAppPlayground;
+        string score;
+        while(!enabled) { yield(); }
+        for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i) {
+            if (playground.DataFileMgr.Ghosts[i].Nickname == Username) {
+                score = tostring(playground.DataFileMgr.Ghosts[i].Result.Time);
+            }
+        }
+        
+        auto rankresult = api.GetPlayerRank(MapUid, score);
+        rank = Json::Write(rankresult[0]['zones'][0]['ranking']['position']);
+        
+
+    }
 }

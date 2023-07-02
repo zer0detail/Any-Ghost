@@ -1,5 +1,8 @@
 [meta]
-version     = "1.1"
+version     = "1.2"
 name        = "Any Ghost"
 author      = "ZerodetailTM"
 category    = "Overlay"
+
+[script]
+dependencies = ['MLHook', "NadeoServices"]

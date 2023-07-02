@@ -1,26 +1,61 @@
 Players@ g_players = Players(); // I made it global. Sue me.
+NadeoApi@ api;
+bool PluginVisible = true;
 
-void RenderInterface() {
-
+void Main() {
     // Simple check to stop running if the user doesnt have the right permissions to be able to
     // race against ghosts. (i.e they have purchased Club)
     if (!canRaceGhostsCheck()){
         return;
     }
+    @api = NadeoApi();
+}
+
+void RenderMenu() {
+	if(UI::MenuItem("\\$db4" + Icons::SnapchatGhost + "\\$z Any Ghost", "", PluginVisible)) {
+        PluginVisible = !PluginVisible;
+	}
+}
+
+void RenderInterface() {
+
+    
     int windowFlags = UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoDocking;
     if (!UI::IsOverlayShown()) {
         windowFlags |= UI::WindowFlags::NoInputs;
     }
 
-    if(UI::IsOverlayShown() && inMap()){
+    if(UI::IsOverlayShown() && inMap() && PluginVisible){
         UI::Begin("Player Search", windowFlags);
         UI::BeginGroup();
         UI::Text("Any Ghost");
+        UI::Text("Enable ghost to see player ranking");
         // If a player enters a string in the search bar, this is the first thing that will change.
         // The g_players.searchTMIO flag will be set to true and the g_players.TMIOSearchString will be filled
         // with the search string the user typed out.
         // This cause the check in Render() to pass and kick off a Trackmania.io search
-        g_players.TMIOSearchString = UI::InputText("Search", "", g_players.searchTMIO, UI::InputTextFlags::EnterReturnsTrue);
+        if(!g_players.searchInProgress){
+            g_players.TMIOSearchString = UI::InputText("Search", "", g_players.searchTMIO, UI::InputTextFlags::EnterReturnsTrue);
+        } else {
+            // Make the hourglass move while we search for players from TMIO so the user knows we are doing something
+            switch(g_players.IconRotation) {
+                case 0:
+                    g_players.Icon = Icons::HourglassO;
+                    break;
+                case 24:
+                    g_players.Icon = Icons::HourglassStart;
+                    break;
+                case 48:
+                    g_players.Icon = Icons::HourglassHalf;
+                    break;
+                case 64:
+                    g_players.Icon = Icons::HourglassEnd;
+                    g_players.IconRotation = -1;
+                    break;
+            }
+            g_players.IconRotation = g_players.IconRotation+1;
+            UI::Text(g_players.Icon + "Searching for " + g_players.TMIOSearchString);
+        }       
        
         // Only show the "Clear Unpinned results" button if theres atleast one player who is unpinned in the list.
         // Otherwise it doesn't really make sense to exist, and removing it keeps the overlay smaller
@@ -34,31 +69,38 @@ void RenderInterface() {
         }
 
         UI::Separator();
-        if(UI::BeginTable("Player Results", 3)){
+        if(UI::BeginTable("Player Results",5)){
             for (uint i =0; i < g_players.PlayerList.Length; i++) {
                 UI::TableNextRow();
+                UI::TableNextColumn();
+                // Flip the pin/unpin button as the user pins/unpins the player
+                UI::PushID(g_players.PlayerList[i].WsId);
+                if (!g_players.PlayerList[i].Pinned) {
+                    if (UI::Button(Icons::ThumbTack)) {
+                        // print("Pinned: " + g_players.PlayerList[i].Username);
+                        g_players.PlayerList[i].Pinned = true;
+                    }
+                } else {
+                    if (UI::Button("\\$888" +Icons::ThumbTack)) {
+                        // print("Unpinned: " + g_players.PlayerList[i].Username);
+                        g_players.PlayerList[i].Pinned = false;
+                    }
+                }
                 UI::TableNextColumn();
                 // Load the snapchat ghost icon is the players ghost is enabled.
                 // This gives a nice visual cue other than the checked radio box
                 // that this ghost is on.
                 if (g_players.PlayerList[i].ghost.enabled) {
-                    UI::Text(Icons::SnapchatGhost + " " + g_players.PlayerList[i].Username);
+                    UI::Text("\\$080" + g_players.PlayerList[i].Username);
                 } else {
                     UI::Text(g_players.PlayerList[i].Username);
                 }
                 UI::TableNextColumn();
-                // Flip the pin/unpin button as the user pins/unpins the player
-                UI::PushID(g_players.PlayerList[i].WsId);
-                if (!g_players.PlayerList[i].Pinned) {
-                    if (UI::Button("Pin")) {
-                        // print("Pinned: " + g_players.PlayerList[i].Username);
-                        g_players.PlayerList[i].Pinned = true;
-                    }
-                } else {
-                    if (UI::Button("Unpin")) {
-                        // print("Unpinned: " + g_players.PlayerList[i].Username);
-                        g_players.PlayerList[i].Pinned = false;
-                    }
+               
+                
+                
+                if (UI::Button("Spectate")){
+                    g_players.PlayerList[i].ghost.Spectate();
                 }
                 UI::TableNextColumn();
                 // Trigger the Ghosts on/off based on the users input into the checkbox
@@ -71,8 +113,20 @@ void RenderInterface() {
                     // Which will only occur if the checkbox is clicked.
                     // This lets us decouple the actions of clicking the checkbox, from the visualization of the checkbox being enabled disabled.
                     // Which is very important to let us sync with the official leaderboards ghosts being enabled/disabled
-                    g_players.PlayerList[i].ghost.checkbox_clicked = UI::Checkbox("Add Ghost", g_players.PlayerList[i].ghost.enabled);
-                }     
+                    if (g_players.PlayerList[i].ghost.enabling) {
+                        g_players.PlayerList[i].ghost.checkbox_clicked = UI::Checkbox(Icons::Spinner+"Adding", g_players.PlayerList[i].ghost.enabled);
+                        
+                    } else {
+                        g_players.PlayerList[i].ghost.checkbox_clicked = UI::Checkbox("Add Ghost", g_players.PlayerList[i].ghost.enabled);
+                    }
+                    UI::TableNextColumn();
+                    if (g_players.PlayerList[i].ghost.rank.Length > 0 ) {
+                        UI::Text(Icons::Kenney::Podium + " " + g_players.PlayerList[i].ghost.rank);
+                    } 
+                    
+                }
+
+                   
                 UI::PopID();
             }
             UI::EndTable();
@@ -102,6 +156,7 @@ void Render() {
         if (g_players.PlayerList.Length > 0){
             for (uint i = 0; i < g_players.PlayerList.Length; ++i){
                 g_players.PlayerList[i].ghost.enabled = false;
+                g_players.PlayerList[i].ghost.rank = "";
             }
         }
     } else {
@@ -119,6 +174,7 @@ void Render() {
             if(g_players.PlayerList[i].ghost.checkbox_clicked != g_players.PlayerList[i].ghost.enabled) {     
                 if (!g_players.PlayerList[i].ghost.enabled){
                     print("Adding ghost for player "+ g_players.PlayerList[i].Username);
+                    g_players.PlayerList[i].ghost.enabling = true;
                     g_players.PlayerList[i].ghost.Enable();
                 } else {
                     print("Turning off ghost for "+ g_players.PlayerList[i].Username);
@@ -130,11 +186,16 @@ void Render() {
             bool ghost_exists = false;
             for (uint j = 0; j < playground.DataFileMgr.Ghosts.Length; ++j) {
                 if (playground.DataFileMgr.Ghosts[j].Nickname == g_players.PlayerList[i].Username) {
+                    g_players.PlayerList[i].ghost.MwId = playground.DataFileMgr.Ghosts[j].Id;
                     ghost_exists = true;
                 }
             }
             if (ghost_exists) {
-                g_players.PlayerList[i].ghost.enabled = true;
+                g_players.PlayerList[i].ghost.enabling = false;
+                g_players.PlayerList[i].ghost.enabled = true;  
+                if (g_players.PlayerList[i].ghost.rank.Length == 0){
+                    startnew(CoroutineFunc(g_players.PlayerList[i].ghost.getRank));
+                }
             } else {
                 g_players.PlayerList[i].ghost.enabled = false;
             }

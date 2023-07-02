@@ -1,6 +1,7 @@
 # Any Ghost
-
-This Trackmania 2020 plugin allows you to search for any trackmania user (that exists inside trackmania.io) and quickly enable or disable their ghost to race against.
+** This plugin requires club access as it interacts with ghosts **
+** This plugin also requires that you have installed the MLHook plugin **
+This Trackmania 2020 plugin allows you to search for any trackmania user (that exists inside trackmania.io) and quickly enable or disable their ghost to race against, as well as spectate them.
 
 The default trackmania interface allows users (with club access) to enable ghosts in the top 5 rankings of a given category (world, region, country, etc) as well as players one rank above and one rank below them.
 However there is no quick and easy way to add arbitrary user ghosts to race against.
@@ -19,7 +20,7 @@ Simply enter a player name, or part of a player name to search for and hit enter
 ![](images/any_ghost_search.png)
 
 A list of player names who match your search will be returned from Trackmania.io.
-Go ahead and click "Pin" to permanently pin that player to your ghosts list.
+Go ahead and click Pin icon to permanently pin that player to your ghosts list.
 After that you can click "Clear unpinned results" to remove other irrelevant entries.
 
 ![](images/any_ghost_search_results.png)
@@ -31,6 +32,11 @@ You can do this over and over to build a list of ghosts you wish to race against
 Once you have your list, toggle the ghost on and off by clicking the Add ghost radio button.
 
 ![](images/ghosts.png)
+
+
+Click the "Spectate button to watch the ghost replay for any ghosts you've search for.
+
+Rankings will automatically be added for any ghosts you activate.
 
 Good Luck beating those ghosts!
 
@@ -46,3 +52,13 @@ Initial Plugin creation
 ## Version 1.1
 - Updated logic for ghost enabled/disabled status. Ghosts are now synchronized with Nadeo leaderboard widget to enable/disable ghosts.
 - Removed excess print statement to declutter openplanet log.
+
+## Version 1.2
+- Spectate any ghost you seach for
+- Ladder ranking displayed for activated ghosts
+- refactored ghost toggling and spectating to use MLHook. Thanks @XertroV!
+- Better (imo) UI
+- Activated ghosts will change the players name to green so its very obvious which ghosts are on
+- Pin icon instead of a big pin/unpin button 
+- Hide the plugin overlay from the plugins menu
+- Visual feedback to users when a search is in progress and when a ghost is being enabled.

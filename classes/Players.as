@@ -14,7 +14,9 @@ class Players {
     // If a user types in a name and presses enter, this bool will be set to true.
     // Letting the main function know it can start a trackmanio.io query as it has a new search term to use.
     bool searchTMIO;
-
+    bool searchInProgress;
+    int IconRotation = 0;
+    string Icon;
     Players() {
         searchTMIO = false; 
     }
@@ -26,6 +28,9 @@ class Players {
 // This is used to fill out the PlayerList.
 void GetPlayerListFromTMIO() {
     
+    // Set search in progress to true so we can display 'searching' and give the user visual feedback that something is happening
+    g_players.searchInProgress = true;
+    
     print("Querying Trackmania.io for players matching term: "+ g_players.TMIOSearchString);
     
     // Build out a simple HTTP Request using openplanets API
@@ -34,7 +39,7 @@ void GetPlayerListFromTMIO() {
     request.Url = "https://trackmania.io/api/players/find?search=" + g_players.TMIOSearchString;
     request.Headers["Accept"] = "application/json";
     request.Headers["Content-Type"] = "application/json";
-    request.Headers["User-Agent"] = "Any Ghost Plugin v1.0";
+    request.Headers["User-Agent"] = "Any Ghost Plugin v1.2";
 
     // Yield back execution until we receive results from trackmania.io to work with
     request.Start();
@@ -50,6 +55,8 @@ void GetPlayerListFromTMIO() {
             SearchResults = Json::Parse(request.String());
         } catch {
             error("Failed to parse Trackmania.io results: " + request.String());
+            // Set search in progress to true so we can display 'searching' and give the user visual feedback that something is happening
+            g_players.searchInProgress = false;
             return;
         }
 
@@ -66,6 +73,9 @@ void GetPlayerListFromTMIO() {
     } else {
         error("Request to Trackmania.io failed with error: " + request.Error());
     } 
+
+    // Set search in progress to true so we can display 'searching' and give the user visual feedback that something is happening
+    g_players.searchInProgress = false;
 } 
 
 
