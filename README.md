@@ -1,6 +1,8 @@
 # Any Ghost
 ** This plugin requires club access as it interacts with ghosts **
+
 ** This plugin also requires that you have installed the MLHook plugin **
+
 This Trackmania 2020 plugin allows you to search for any trackmania user (that exists inside trackmania.io) and quickly enable or disable their ghost to race against, as well as spectate them.
 
 The default trackmania interface allows users (with club access) to enable ghosts in the top 5 rankings of a given category (world, region, country, etc) as well as players one rank above and one rank below them.
