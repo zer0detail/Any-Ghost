@@ -1,5 +1,6 @@
 // We need to store the results of players from Trackmanio.io searches so that we can
 // display those results to the user (hence username) and later activate that users ghost (hence wsid) 
+#if DEPENDENCY_MLHOOK
 class Player {
     string Username; // Players in game display name e.g. ZerodetailTM
     bool Pinned; // Whether this player has been pinned in our player list to prevent removal
@@ -13,3 +14,4 @@ class Player {
         @ghost = t_ghost;
     }
 }
+#endif

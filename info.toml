@@ -5,4 +5,5 @@ author      = "ZerodetailTM"
 category    = "Overlay"
 
 [script]
-dependencies = ['MLHook', "NadeoServices"]
+dependencies = ["NadeoServices"]
+optional_dependencies = ['MLHook']

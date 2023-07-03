@@ -3,6 +3,7 @@
 // At the moment we assume a ghost is off when a new Player is added to the list, but this might not always be true.
 // If a ghost is on and the plugin is reloaded, the plugin will say the ghost is off, however it will be on.
 // Implementing a check to see if the ghost is on and changing the state to on could be a good 1.1 change.
+#if DEPENDENCY_MLHOOK
 class Ghost {
     bool enabled; // Is the ghost enabled or disabled
     bool checkbox_clicked;
@@ -12,6 +13,8 @@ class Ghost {
     string Username; // Username for the ghost, used for checking if ghosts already exist
     MwId MwId;
     string rank;
+    uint timeout;
+    bool error;
     
 
 
@@ -21,6 +24,8 @@ class Ghost {
         WsId = wsid;
         Username = username;  
         checkbox_clicked = false;
+        timeout = 0;
+        rank = "-";
     }
 
     // Enable the players ghost
@@ -72,16 +77,35 @@ class Ghost {
         string MapUid = GetApp().RootMap.MapInfo.MapUid;
         CGameManiaAppPlayground@ playground = GetApp().Network.ClientManiaAppPlayground;
         string score;
-        while(!enabled) { yield(); }
+        while(!enabled) { 
+            if(!inMap())
+            {
+                print("thread for "+Username+" dying");
+                return;
+            } 
+            yield();  
+            }
         for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i) {
             if (playground.DataFileMgr.Ghosts[i].Nickname == Username) {
                 score = tostring(playground.DataFileMgr.Ghosts[i].Result.Time);
             }
         }
         
-        auto rankresult = api.GetPlayerRank(MapUid, score);
+        Json::Value rankresult = g_api.GetPlayerRank(MapUid, score);
         rank = Json::Write(rankresult[0]['zones'][0]['ranking']['position']);
-        
+        print("Got rank " +rank+ " for player " + Username);
+    }
 
+    void reset() {
+        // print("Reseting ghost for " + Username);
+        if (enabled && inMap()) {
+            Disable();
+        }
+        enabled = false;
+        rank = "-";
+        error=false;
+        timeout = 0;
+        enabling = false;
     }
 }
+#endif

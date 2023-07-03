@@ -1,6 +1,9 @@
-Players@ g_players = Players(); // I made it global. Sue me.
-NadeoApi@ api;
-bool PluginVisible = true;
+#if DEPENDENCY_MLHOOK
+Players@ g_players;
+NadeoApi@ g_api;
+bool g_PluginVisible = true;
+bool g_mapSwitched = false;
+bool g_pluginErrorShown = false;
 
 void Main() {
     // Simple check to stop running if the user doesnt have the right permissions to be able to
@@ -8,24 +11,26 @@ void Main() {
     if (!canRaceGhostsCheck()){
         return;
     }
-    @api = NadeoApi();
+    @g_api = NadeoApi();
+    @g_players = Players();
+
 }
 
 void RenderMenu() {
-	if(UI::MenuItem("\\$db4" + Icons::SnapchatGhost + "\\$z Any Ghost", "", PluginVisible)) {
-        PluginVisible = !PluginVisible;
+    // Create the menu entry under Plugins to enable/disable the plugin from being visible
+	if(UI::MenuItem("\\$db4" + Icons::SnapchatGhost + "\\$z Any Ghost", "", g_PluginVisible)) {
+        g_PluginVisible = !g_PluginVisible;
 	}
 }
 
 void RenderInterface() {
-
-    
     int windowFlags = UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoDocking;
     if (!UI::IsOverlayShown()) {
         windowFlags |= UI::WindowFlags::NoInputs;
     }
 
-    if(UI::IsOverlayShown() && inMap() && PluginVisible){
+    if(UI::IsOverlayShown() && inMap() && g_PluginVisible){
+
         UI::Begin("Player Search", windowFlags);
         UI::BeginGroup();
         UI::Text("Any Ghost");
@@ -69,12 +74,18 @@ void RenderInterface() {
         }
 
         UI::Separator();
-        if(UI::BeginTable("Player Results",5)){
+        if(UI::BeginTable("Player Results",6)){
             for (uint i =0; i < g_players.PlayerList.Length; i++) {
                 UI::TableNextRow();
+                
+                
+                UI::PushID(g_players.PlayerList[i].WsId);
+                UI::TableNextColumn();
+                if(UI::Button("\\$080" + Icons::Refresh)){
+                    g_players.PlayerList[i].ghost.reset();
+                }
                 UI::TableNextColumn();
                 // Flip the pin/unpin button as the user pins/unpins the player
-                UI::PushID(g_players.PlayerList[i].WsId);
                 if (!g_players.PlayerList[i].Pinned) {
                     if (UI::Button(Icons::ThumbTack)) {
                         // print("Pinned: " + g_players.PlayerList[i].Username);
@@ -87,7 +98,7 @@ void RenderInterface() {
                     }
                 }
                 UI::TableNextColumn();
-                // Load the snapchat ghost icon is the players ghost is enabled.
+                // Colour the username green if the players ghost is enabled.
                 // This gives a nice visual cue other than the checked radio box
                 // that this ghost is on.
                 if (g_players.PlayerList[i].ghost.enabled) {
@@ -116,13 +127,21 @@ void RenderInterface() {
                     if (g_players.PlayerList[i].ghost.enabling) {
                         g_players.PlayerList[i].ghost.checkbox_clicked = UI::Checkbox(Icons::Spinner+"Adding", g_players.PlayerList[i].ghost.enabled);
                         
+                    } else if (g_players.PlayerList[i].ghost.error) {
+                        UI::Text("\\$800" + Icons::Times + "No Ghost");
                     } else {
                         g_players.PlayerList[i].ghost.checkbox_clicked = UI::Checkbox("Add Ghost", g_players.PlayerList[i].ghost.enabled);
+                        if (g_players.PlayerList[i].ghost.checkbox_clicked){
+                            g_mapSwitched = false;
+                        }
                     }
                     UI::TableNextColumn();
+
                     if (g_players.PlayerList[i].ghost.rank.Length > 0 ) {
-                        UI::Text(Icons::Kenney::Podium + " " + g_players.PlayerList[i].ghost.rank);
+                        UI::Text(Icons::Kenney::Podium + " " + g_players.PlayerList[i].ghost.rank);    
                     } 
+                    
+                    
                     
                 }
 
@@ -133,6 +152,14 @@ void RenderInterface() {
         }
         UI::EndGroup();
         UI::End();
+    
+
+        if(!g_pluginErrorShown){
+            
+        }
+        
+
+
     }
 }
 void Render() {
@@ -153,13 +180,13 @@ void Render() {
     // This stops us from loading into a new map and seeing that the ghosts checkbox is still enabled,
     // but the ghost is off.
     if (!inMap()) {
+        g_mapSwitched = true;
         if (g_players.PlayerList.Length > 0){
             for (uint i = 0; i < g_players.PlayerList.Length; ++i){
-                g_players.PlayerList[i].ghost.enabled = false;
-                g_players.PlayerList[i].ghost.rank = "";
+                g_players.PlayerList[i].ghost.reset();
             }
         }
-    } else {
+    } else if (!g_mapSwitched){
         CGameManiaAppPlayground@ playground = GetApp().Network.ClientManiaAppPlayground;
         // ghosts are added when you click enable/disable in the DataFileMgr. Which also
         // sits under ClientManiaAppPlayground.
@@ -192,15 +219,29 @@ void Render() {
             }
             if (ghost_exists) {
                 g_players.PlayerList[i].ghost.enabling = false;
-                g_players.PlayerList[i].ghost.enabled = true;  
-                if (g_players.PlayerList[i].ghost.rank.Length == 0){
+                g_players.PlayerList[i].ghost.enabled = true; 
+                g_players.PlayerList[i].ghost.timeout = 0; 
+                if (g_players.PlayerList[i].ghost.rank == "-" ){
+                    g_players.PlayerList[i].ghost.rank = "--";
+                    print("Getting rank for " + g_players.PlayerList[i].Username);
                     startnew(CoroutineFunc(g_players.PlayerList[i].ghost.getRank));
                 }
             } else {
+                if (g_players.PlayerList[i].ghost.enabling) {
+                    g_players.PlayerList[i].ghost.timeout++;
+                    if (g_players.PlayerList[i].ghost.timeout >= 1000){
+                        g_players.PlayerList[i].ghost.enabling = false;
+                        g_players.PlayerList[i].ghost.error = true;
+                        g_players.PlayerList[i].ghost.timeout = 0;
+                    }
+                }
                 g_players.PlayerList[i].ghost.enabled = false;
             }
         }
     }
+
+    return;
+
 }
 
 
@@ -210,6 +251,9 @@ void clearUnpinnedResults() {
     // from the users sight.
     for (uint i = 0; i < g_players.PlayerList.Length; i++) {
         if (!g_players.PlayerList[i].Pinned) {
+            // If the user unpins the ghost they probably don't want to see it anymore.
+            // Toggle the ghost off if its enabled and reset its error/timeout/enabling/etc states.
+            g_players.PlayerList[i].ghost.reset();
             g_players.PlayerList.RemoveAt(i);
             i--;
         } else {
@@ -217,3 +261,15 @@ void clearUnpinnedResults() {
         }
     }
 }
+
+#else
+void Main() {
+    UI::ShowNotification(
+        "Any Ghost Plugin Error",
+        "This plugin now depends on the plugin MLHook.\nPlease install \\$000 MLHook \\$z from the Plugin Manager",
+        vec4(1, 0.5, 0.2, 0),
+        10000
+    );
+}
+
+#endif

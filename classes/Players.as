@@ -2,6 +2,7 @@
 // It holds a list of players, as well as trackmania.io search information used when searching
 // for more players.
 // Only one Players object needs to exist.
+#if DEPENDENCY_MLHOOK
 class Players {
     // PlayerList is the main array this plugin works off of.
     // Search results from trackmania.io will be parsed and the players
@@ -65,8 +66,21 @@ void GetPlayerListFromTMIO() {
         for(uint i = 0; i < SearchResults.Length; i++) {
             string wsid =  SearchResults[i]["player"]["id"];
             string name = SearchResults[i]["player"]["name"];
-            Ghost@ ghost = Ghost(wsid, false, name);
-            g_players.PlayerList.InsertLast(Player(name, wsid, ghost));
+            bool alreadyExists = false;
+
+            for (uint j = 0; j < g_players.PlayerList.Length; j++) {
+                if (g_players.PlayerList[j].Username == name) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+            if(!alreadyExists) {
+                Ghost@ ghost = Ghost(wsid, false, name);
+                g_players.PlayerList.InsertLast(Player(name, wsid, ghost));
+            } else {
+                print(name + " already added");
+            }
+            
         }
         print("Parsed "+SearchResults.Length+" results and added them the Player List.");
         
@@ -77,6 +91,6 @@ void GetPlayerListFromTMIO() {
     // Set search in progress to true so we can display 'searching' and give the user visual feedback that something is happening
     g_players.searchInProgress = false;
 } 
-
+#endif
 
 
