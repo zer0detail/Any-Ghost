@@ -64,3 +64,7 @@ Initial Plugin creation
 - Pin icon instead of a big pin/unpin button 
 - Hide the plugin overlay from the plugins menu
 - Visual feedback to users when a search is in progress and when a ghost is being enabled.
+
+## Version 1.3
+- Fix custom events passed to MLHook after update. (e.g. TMxSM_Race_Record_ToggleGhost becomes TMGame_Record_ToggleGhost)
+- Minor fix to displayed player ranking (the returned API value appears to be off by one)
