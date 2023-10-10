@@ -92,7 +92,9 @@ class Ghost {
         }
         
         Json::Value rankresult = g_api.GetPlayerRank(MapUid, score);
-        rank = Json::Write(rankresult[0]['zones'][0]['ranking']['position']);
+        // Rank positions seem to be one off from the real position when returned
+        // by the API, so we -1.
+        rank = Json::Write(rankresult[0]['zones'][0]['ranking']['position']-1);
         print("Got rank " +rank+ " for player " + Username);
     }
 
