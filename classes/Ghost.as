@@ -43,7 +43,7 @@ class Ghost {
             }
         }
         print("Sending ToggleGhost MLHook for " + WsId);
-        MLHook::Queue_SH_SendCustomEvent( "TMxSM_Race_Record_ToggleGhost", {WsId});
+        MLHook::Queue_SH_SendCustomEvent( "TMGame_Record_ToggleGhost", {WsId});
         
     }
     
@@ -62,11 +62,11 @@ class Ghost {
         if (already_disabled) {
             return;
         }
-        MLHook::Queue_SH_SendCustomEvent( "TMxSM_Race_Record_ToggleGhost", {WsId});
+        MLHook::Queue_SH_SendCustomEvent( "TMGame_Record_ToggleGhost", {WsId});
     }
 
     void Spectate() {
-        MLHook::Queue_SH_SendCustomEvent("TMxSM_Race_Record_SpectateGhost", {WsId});
+        MLHook::Queue_SH_SendCustomEvent("TMGame_Record_SpectateGhost", {WsId});
     }  
 
     // We get the ranking on a per-ghost basis.
