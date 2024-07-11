@@ -33,7 +33,7 @@ void RenderInterface() {
 
         UI::Begin("Player Search", windowFlags);
         if (GetApp().PlaygroundScript is null) {
-            UI::TextWrapped(Meta::ExecutingPlugin().Name + " only works in Solo modes.");
+            UI::Text(Meta::ExecutingPlugin().Name + " only works in Solo modes.");
             UI::End();
             return;
         }
