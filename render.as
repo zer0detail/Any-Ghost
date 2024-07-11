@@ -32,6 +32,11 @@ void RenderInterface() {
     if(UI::IsOverlayShown() && inMap() && g_PluginVisible){
 
         UI::Begin("Player Search", windowFlags);
+        if (GetApp().PlaygroundScript is null) {
+            UI::Text(Meta::ExecutingPlugin().Name + " only works in Solo modes.");
+            UI::End();
+            return;
+        }
         UI::BeginGroup();
         UI::Text("Any Ghost");
         UI::Text("Enable ghost to see player ranking");
@@ -60,8 +65,8 @@ void RenderInterface() {
             }
             g_players.IconRotation = g_players.IconRotation+1;
             UI::Text(g_players.Icon + "Searching for " + g_players.TMIOSearchString);
-        }       
-       
+        }
+
         // Only show the "Clear Unpinned results" button if theres atleast one player who is unpinned in the list.
         // Otherwise it doesn't really make sense to exist, and removing it keeps the overlay smaller
         for (uint i =0; i < g_players.PlayerList.Length; i++){
@@ -77,8 +82,8 @@ void RenderInterface() {
         if(UI::BeginTable("Player Results",6)){
             for (uint i =0; i < g_players.PlayerList.Length; i++) {
                 UI::TableNextRow();
-                
-                
+
+
                 UI::PushID(g_players.PlayerList[i].WsId);
                 UI::TableNextColumn();
                 if(UI::Button("\\$080" + Icons::Refresh)){
@@ -107,9 +112,9 @@ void RenderInterface() {
                     UI::Text(g_players.PlayerList[i].Username);
                 }
                 UI::TableNextColumn();
-               
-                
-                
+
+
+
                 if (UI::Button("Spectate")){
                     g_players.PlayerList[i].ghost.Spectate();
                 }
@@ -126,7 +131,7 @@ void RenderInterface() {
                     // Which is very important to let us sync with the official leaderboards ghosts being enabled/disabled
                     if (g_players.PlayerList[i].ghost.enabling) {
                         g_players.PlayerList[i].ghost.checkbox_clicked = UI::Checkbox(Icons::Spinner+"Adding", g_players.PlayerList[i].ghost.enabled);
-                        
+
                     } else if (g_players.PlayerList[i].ghost.error) {
                         UI::Text("\\$800" + Icons::Times + "No Ghost");
                     } else {
@@ -138,26 +143,22 @@ void RenderInterface() {
                     UI::TableNextColumn();
 
                     if (g_players.PlayerList[i].ghost.rank.Length > 0 ) {
-                        UI::Text(Icons::Kenney::Podium + " " + g_players.PlayerList[i].ghost.rank);    
-                    } 
-                    
-                    
-                    
+                        UI::Text(Icons::Kenney::Podium + " " + g_players.PlayerList[i].ghost.rank);
+                    }
                 }
 
-                   
                 UI::PopID();
             }
             UI::EndTable();
         }
         UI::EndGroup();
         UI::End();
-    
+
 
         if(!g_pluginErrorShown){
-            
+
         }
-        
+
 
 
     }
@@ -174,8 +175,8 @@ void Render() {
         startnew(GetPlayerListFromTMIO);
         // Set back to false so we only search once.
         g_players.searchTMIO = false;
-    } 
-    
+    }
+
     // If we aren't in a map we need to clear the enabled status of all the ghosts.
     // This stops us from loading into a new map and seeing that the ghosts checkbox is still enabled,
     // but the ghost is off.
@@ -194,11 +195,11 @@ void Render() {
         // Each of which will contain an active ghost.
         // so we could check if wirtuals ghost is enabled by something like
         // for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i)
-        //    if playground.DataFileMgr.Ghosts[i].Nickname == <our ghost object>.Nickname 
+        //    if playground.DataFileMgr.Ghosts[i].Nickname == <our ghost object>.Nickname
         //      wirtual is enabled
         for (uint i = 0; i < g_players.PlayerList.Length; ++i){
             // If the players "Add Ghost" checkbox has been clicked, do the ghost enabling/disabling
-            if(g_players.PlayerList[i].ghost.checkbox_clicked != g_players.PlayerList[i].ghost.enabled) {     
+            if(g_players.PlayerList[i].ghost.checkbox_clicked != g_players.PlayerList[i].ghost.enabled) {
                 if (!g_players.PlayerList[i].ghost.enabled){
                     print("Adding ghost for player "+ g_players.PlayerList[i].Username);
                     g_players.PlayerList[i].ghost.enabling = true;
@@ -206,7 +207,7 @@ void Render() {
                 } else {
                     print("Turning off ghost for "+ g_players.PlayerList[i].Username);
                     g_players.PlayerList[i].ghost.Disable();
-                }                 
+                }
             }
             // Regardless of whether the checkbox was clicked, see if there has been a change to the ghost, so we can update its enabled state.
             // e.g if someone clicked the inbuilt leaderboard and changed the ghost state outside of our plugin
@@ -219,8 +220,8 @@ void Render() {
             }
             if (ghost_exists) {
                 g_players.PlayerList[i].ghost.enabling = false;
-                g_players.PlayerList[i].ghost.enabled = true; 
-                g_players.PlayerList[i].ghost.timeout = 0; 
+                g_players.PlayerList[i].ghost.enabled = true;
+                g_players.PlayerList[i].ghost.timeout = 0;
                 if (g_players.PlayerList[i].ghost.rank == "-" ){
                     g_players.PlayerList[i].ghost.rank = "--";
                     print("Getting rank for " + g_players.PlayerList[i].Username);
