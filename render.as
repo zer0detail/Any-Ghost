@@ -1,6 +1,7 @@
 #if DEPENDENCY_MLHOOK
 Players@ g_players;
 NadeoApi@ g_api;
+[Setting hidden]
 bool g_PluginVisible = true;
 bool g_mapSwitched = false;
 bool g_pluginErrorShown = false;
