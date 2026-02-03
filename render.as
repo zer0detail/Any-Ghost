@@ -24,7 +24,7 @@ void RenderMenu() {
 }
 
 void RenderInterface() {
-    int windowFlags = UI::WindowFlags::AlwaysAutoResize;
+    int windowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::AlwaysAutoResize;
     if (!UI::IsOverlayShown()) {
         windowFlags |= UI::WindowFlags::NoInputs;
     }
