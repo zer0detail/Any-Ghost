@@ -120,7 +120,7 @@ void RenderInterface() {
                 }
                 UI::TableNextColumn();
                 // Trigger the Ghosts on/off based on the users input into the checkbox
-                if (g_players.PlayerList[i].ghost != null) {
+                if (g_players.PlayerList[i].ghost !is null) {
                     // Pass in the current active state of the ghost so we can have the checkbox display activated
                     // even if the ghost is activated somewhere else.
                     // Save the result of any user clicks to a totally different variable "checkbox_clicked".

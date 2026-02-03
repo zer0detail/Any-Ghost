@@ -18,7 +18,7 @@ class Ghost {
     
 
 
-    Ghost(const string &in wsid, bool t_enabled, string username) {
+    Ghost(const string &in wsid, bool t_enabled, const string &in username) {
         // print("Initializing Ghost for player: "+ wsid);
         enabled = t_enabled;
         WsId = wsid;
