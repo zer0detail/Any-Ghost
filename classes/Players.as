@@ -2,7 +2,6 @@
 // It holds a list of players, as well as trackmania.io search information used when searching
 // for more players.
 // Only one Players object needs to exist.
-#if DEPENDENCY_MLHOOK
 class Players {
     // PlayerList is the main array this plugin works off of.
     // Search results from trackmania.io will be parsed and the players
@@ -91,6 +90,3 @@ void GetPlayerListFromTMIO() {
     // Set search in progress to true so we can display 'searching' and give the user visual feedback that something is happening
     g_players.searchInProgress = false;
 } 
-#endif
-
-

@@ -1,6 +1,6 @@
-#if DEPENDENCY_MLHOOK
 Players@ g_players;
 NadeoApi@ g_api;
+[Setting hidden]
 bool g_PluginVisible = true;
 bool g_mapSwitched = false;
 bool g_pluginErrorShown = false;
@@ -24,21 +24,20 @@ void RenderMenu() {
 }
 
 void RenderInterface() {
-    int windowFlags = UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoDocking;
+    int windowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::AlwaysAutoResize;
     if (!UI::IsOverlayShown()) {
         windowFlags |= UI::WindowFlags::NoInputs;
     }
 
     if(UI::IsOverlayShown() && inMap() && g_PluginVisible){
 
-        UI::Begin("Player Search", windowFlags);
+        UI::Begin("Any Ghost", g_PluginVisible, windowFlags);
         if (GetApp().PlaygroundScript is null) {
             UI::Text(Meta::ExecutingPlugin().Name + " only works in Solo modes.");
             UI::End();
             return;
         }
         UI::BeginGroup();
-        UI::Text("Any Ghost");
         UI::Text("Enable ghost to see player ranking");
         // If a player enters a string in the search bar, this is the first thing that will change.
         // The g_players.searchTMIO flag will be set to true and the g_players.TMIOSearchString will be filled
@@ -120,7 +119,7 @@ void RenderInterface() {
                 }
                 UI::TableNextColumn();
                 // Trigger the Ghosts on/off based on the users input into the checkbox
-                if (g_players.PlayerList[i].ghost != null) {
+                if (g_players.PlayerList[i].ghost !is null) {
                     // Pass in the current active state of the ghost so we can have the checkbox display activated
                     // even if the ghost is activated somewhere else.
                     // Save the result of any user clicks to a totally different variable "checkbox_clicked".
@@ -262,15 +261,3 @@ void clearUnpinnedResults() {
         }
     }
 }
-
-#else
-void Main() {
-    UI::ShowNotification(
-        "Any Ghost Plugin Error",
-        "This plugin now depends on the plugin MLHook.\nPlease install \\$000 MLHook \\$z from the Plugin Manager",
-        vec4(1, 0.5, 0.2, 0),
-        10000
-    );
-}
-
-#endif

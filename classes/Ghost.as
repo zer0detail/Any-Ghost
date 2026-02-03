@@ -3,7 +3,6 @@
 // At the moment we assume a ghost is off when a new Player is added to the list, but this might not always be true.
 // If a ghost is on and the plugin is reloaded, the plugin will say the ghost is off, however it will be on.
 // Implementing a check to see if the ghost is on and changing the state to on could be a good 1.1 change.
-#if DEPENDENCY_MLHOOK
 class Ghost {
     bool enabled; // Is the ghost enabled or disabled
     bool checkbox_clicked;
@@ -18,7 +17,7 @@ class Ghost {
     
 
 
-    Ghost(const string &in wsid, bool t_enabled, string username) {
+    Ghost(const string &in wsid, bool t_enabled, const string &in username) {
         // print("Initializing Ghost for player: "+ wsid);
         enabled = t_enabled;
         WsId = wsid;
@@ -110,4 +109,3 @@ class Ghost {
         enabling = false;
     }
 }
-#endif
