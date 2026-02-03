@@ -24,21 +24,20 @@ void RenderMenu() {
 }
 
 void RenderInterface() {
-    int windowFlags = UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoDocking;
+    int windowFlags = UI::WindowFlags::AlwaysAutoResize;
     if (!UI::IsOverlayShown()) {
         windowFlags |= UI::WindowFlags::NoInputs;
     }
 
     if(UI::IsOverlayShown() && inMap() && g_PluginVisible){
 
-        UI::Begin("Player Search", windowFlags);
+        UI::Begin("Any Ghost", g_PluginVisible, windowFlags);
         if (GetApp().PlaygroundScript is null) {
             UI::Text(Meta::ExecutingPlugin().Name + " only works in Solo modes.");
             UI::End();
             return;
         }
         UI::BeginGroup();
-        UI::Text("Any Ghost");
         UI::Text("Enable ghost to see player ranking");
         // If a player enters a string in the search bar, this is the first thing that will change.
         // The g_players.searchTMIO flag will be set to true and the g_players.TMIOSearchString will be filled
