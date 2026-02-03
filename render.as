@@ -1,4 +1,3 @@
-#if DEPENDENCY_MLHOOK
 Players@ g_players;
 NadeoApi@ g_api;
 [Setting hidden]
@@ -263,15 +262,3 @@ void clearUnpinnedResults() {
         }
     }
 }
-
-#else
-void Main() {
-    UI::ShowNotification(
-        "Any Ghost Plugin Error",
-        "This plugin now depends on the plugin MLHook.\nPlease install \\$000 MLHook \\$z from the Plugin Manager",
-        vec4(1, 0.5, 0.2, 0),
-        10000
-    );
-}
-
-#endif
